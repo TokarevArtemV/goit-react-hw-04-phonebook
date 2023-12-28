@@ -8,7 +8,6 @@ import {
 } from 'react-notifications';
 import 'react-notifications/lib/notifications.css';
 import { Modal } from './Modal';
-
 const KEY_LOCAL_STORAGE = 'contacts';
 
 export const App = () => {
