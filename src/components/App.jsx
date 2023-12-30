@@ -7,29 +7,14 @@ import {
   NotificationManager,
 } from 'react-notifications';
 import 'react-notifications/lib/notifications.css';
-import { Modal } from './Modal';
+
 const KEY_LOCAL_STORAGE = 'contacts';
 
 export const App = () => {
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState(
+    () => JSON.parse(localStorage.getItem(KEY_LOCAL_STORAGE)) || []
+  );
   const [filter, setFilter] = useState('');
-  const [showModal, setShowModal] = useState(false);
-
-  useEffect(() => {
-    try {
-      const contactsInLS =
-        JSON.parse(localStorage.getItem(KEY_LOCAL_STORAGE)) || [];
-      setContacts(contactsInLS);
-
-      if (contactsInLS.length === 0) {
-        setTimeout(() => {
-          setShowModal(true);
-        }, 1000);
-      }
-    } catch (error) {
-      new Error(error.message);
-    }
-  }, []);
 
   useEffect(() => {
     try {
@@ -39,14 +24,7 @@ export const App = () => {
     }
   }, [contacts]);
 
-  const toggleModal = () => {
-    setShowModal(!showModal);
-  };
-
-  const handleInputFilter = evt => {
-    const searchName = evt.target.value;
-    setFilter(searchName);
-  };
+  const handleInputFilter = evt => setFilter(evt.target.value);
 
   const handleSubmitForm = ({ id, name, number }) => {
     const isExists = contacts.some(
@@ -56,16 +34,13 @@ export const App = () => {
       NotificationManager.info(`${name} is alredy in contacts`);
       return;
     }
-    setContacts([...contacts, { id, name, number }]);
+    setContacts(prevState => [...prevState, { id, name, number }]);
   };
 
   const handleDeleteContact = idContact => {
-    setContacts(contacts.filter(contact => contact.id !== idContact));
-  };
-
-  const loadDefaultContacts = contactsFromModal => {
-    setContacts(contactsFromModal);
-    toggleModal();
+    setContacts(prevState =>
+      prevState.filter(contact => contact.id !== idContact)
+    );
   };
 
   const filteredContacts = contacts.filter(contact =>
@@ -74,13 +49,10 @@ export const App = () => {
 
   return (
     <>
-      {showModal && (
-        <Modal toggleModal={toggleModal} loadContacts={loadDefaultContacts} />
-      )}
       <div className="container">
         <NotificationContainer />
         <h1>Phonebook</h1>
-        <ContactForm onSubmitForm={handleSubmitForm} />
+        <ContactForm handleSubmitForm={handleSubmitForm} />
         <h2>Contacts</h2>
         <Filter onInputFilter={handleInputFilter} filter={filter} />
         {filteredContacts.length > 0 && (
